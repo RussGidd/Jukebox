@@ -1,6 +1,7 @@
 import express from "express";
+import { requireUser } from "#api/authentication";
 import {
-  getPlaylists,
+  getPlaylistsByOwnerId,
   getPlaylistById,
   createPlaylist,
   getTracksByPlaylistId,
@@ -10,9 +11,11 @@ import { getTrackById } from "#db/queries/tracks";
 
 const playlistsRouter = express.Router();
 
+playlistsRouter.use(requireUser);
+
 playlistsRouter.get("/", async function (request, response, next) {
   try {
-    const playlists = await getPlaylists();
+    const playlists = await getPlaylistsByOwnerId(request.user.id);
     response.send(playlists);
   } catch (error) {
     next(error);
@@ -30,7 +33,8 @@ playlistsRouter.post("/", async function (request, response, next) {
         .send({ error: "Name and description are required." });
     }
 
-    const playlist = await createPlaylist(name, description);
+    const playlist = await createPlaylist(name, description, request.user.id);
+
     response.status(201).send(playlist);
   } catch (error) {
     next(error);
@@ -53,7 +57,16 @@ playlistsRouter.get("/:id", async function (request, response, next) {
       return response.status(404).send({ error: "Playlist not found." });
     }
 
-    response.send(playlist);
+    if (playlist.owner_id !== request.user.id) {
+      return response.status(403).send({ error: "Forbidden." });
+    }
+
+    const tracks = await getTracksByPlaylistId(playlistId);
+
+    response.send({
+      ...playlist,
+      tracks,
+    });
   } catch (error) {
     next(error);
   }
@@ -73,6 +86,10 @@ playlistsRouter.get("/:id/tracks", async function (request, response, next) {
 
     if (!playlist) {
       return response.status(404).send({ error: "Playlist not found." });
+    }
+
+    if (playlist.owner_id !== request.user.id) {
+      return response.status(403).send({ error: "Forbidden." });
     }
 
     const tracks = await getTracksByPlaylistId(playlistId);
@@ -100,6 +117,10 @@ playlistsRouter.post("/:id/tracks", async function (request, response, next) {
     const playlist = await getPlaylistById(playlistId);
     if (!playlist) {
       return response.status(404).send({ error: "Playlist not found." });
+    }
+
+    if (playlist.owner_id !== request.user.id) {
+      return response.status(403).send({ error: "Forbidden." });
     }
 
     const track = await getTrackById(trackId);

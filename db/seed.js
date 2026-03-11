@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import db from "#db/client";
 
 await db.connect();
@@ -6,6 +7,25 @@ await db.end();
 console.log("🌱 Database seeded.");
 
 async function seed() {
+  const users = [
+    { username: "alice", password: "password123" },
+    { username: "bob", password: "password123" },
+  ];
+
+  for (const user of users) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+
+    await db.query(
+      `
+      INSERT INTO users (username, password)
+      VALUES ($1, $2)
+      `,
+      [user.username, hashedPassword],
+    );
+  }
+
+  console.log("Users seeded.");
+
   const tracks = [
     { name: "Morning Energy", duration_ms: 180000 },
     { name: "City Lights", duration_ms: 210000 },
@@ -43,56 +63,88 @@ async function seed() {
     {
       name: "Morning Motivation",
       description: "Upbeat songs to start the day",
+      owner_id: 1,
     },
     {
       name: "Late Night Coding",
       description: "Focus music for programming sessions",
+      owner_id: 1,
     },
-    { name: "Chill Vibes", description: "Relaxing tracks for unwinding" },
-    { name: "Road Trip", description: "Music for long drives" },
-    { name: "Rainy Day", description: "Calm songs for quiet afternoons" },
-    { name: "Workout Energy", description: "High energy tracks for the gym" },
-    { name: "Deep Focus", description: "Minimal distraction background music" },
+    {
+      name: "Chill Vibes",
+      description: "Relaxing tracks for unwinding",
+      owner_id: 1,
+    },
+    {
+      name: "Road Trip",
+      description: "Music for long drives",
+      owner_id: 1,
+    },
+    {
+      name: "Rainy Day",
+      description: "Calm songs for quiet afternoons",
+      owner_id: 1,
+    },
+    {
+      name: "Workout Energy",
+      description: "High energy tracks for the gym",
+      owner_id: 2,
+    },
+    {
+      name: "Deep Focus",
+      description: "Minimal distraction background music",
+      owner_id: 2,
+    },
     {
       name: "Evening Wind Down",
       description: "Slower music for relaxing evenings",
+      owner_id: 2,
     },
-    { name: "Creative Flow", description: "Songs to help creative thinking" },
-    { name: "Weekend Relax", description: "Easy listening for free time" },
+    {
+      name: "Creative Flow",
+      description: "Songs to help creative thinking",
+      owner_id: 2,
+    },
+    {
+      name: "Weekend Relax",
+      description: "Easy listening for free time",
+      owner_id: 2,
+    },
   ];
 
   for (const playlist of playlists) {
     await db.query(
-      `INSERT INTO playlists (name, description)
-       VALUES ($1, $2)`,
-      [playlist.name, playlist.description],
+      `INSERT INTO playlists (name, description, owner_id)
+       VALUES ($1, $2, $3)`,
+      [playlist.name, playlist.description, playlist.owner_id],
     );
   }
 
   console.log("Playlists seeded.");
 
-  const playlistsTracks = [
-    { playlist_id: 1, track_id: 1 },
-    { playlist_id: 1, track_id: 2 },
-    { playlist_id: 1, track_id: 3 },
+const playlistsTracks = [
+  { playlist_id: 1, track_id: 1 },
+  { playlist_id: 1, track_id: 2 },
+  { playlist_id: 1, track_id: 3 },
+  { playlist_id: 1, track_id: 4 },
+  { playlist_id: 1, track_id: 5 },
 
-    { playlist_id: 2, track_id: 4 },
-    { playlist_id: 2, track_id: 5 },
+  { playlist_id: 2, track_id: 6 },
+  { playlist_id: 2, track_id: 7 },
 
-    { playlist_id: 3, track_id: 6 },
-    { playlist_id: 3, track_id: 7 },
+  { playlist_id: 3, track_id: 8 },
+  { playlist_id: 3, track_id: 9 },
 
-    { playlist_id: 4, track_id: 8 },
-    { playlist_id: 4, track_id: 9 },
+  { playlist_id: 4, track_id: 10 },
 
-    { playlist_id: 5, track_id: 10 },
+  { playlist_id: 5, track_id: 11 },
 
-    { playlist_id: 6, track_id: 11 },
-    { playlist_id: 7, track_id: 12 },
-    { playlist_id: 8, track_id: 13 },
-    { playlist_id: 9, track_id: 14 },
-    { playlist_id: 10, track_id: 15 },
-  ];
+  { playlist_id: 6, track_id: 12 },
+  { playlist_id: 6, track_id: 13 },
+  { playlist_id: 6, track_id: 14 },
+  { playlist_id: 6, track_id: 15 },
+  { playlist_id: 6, track_id: 16 }
+];
 
   for (const entry of playlistsTracks) {
     await db.query(

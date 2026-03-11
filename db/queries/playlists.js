@@ -1,13 +1,14 @@
 import db from "#db/client";
 
-export async function getPlaylists() {
+export async function getPlaylistsByOwnerId(ownerId) {
   const sql = `
     SELECT *
     FROM playlists
+    WHERE owner_id = $1
     ORDER BY id;
   `;
 
-  const result = await db.query(sql);
+  const result = await db.query(sql, [ownerId]);
   return result.rows;
 }
 
@@ -22,14 +23,14 @@ export async function getPlaylistById(id) {
   return result.rows[0];
 }
 
-export async function createPlaylist(name, description) {
+export async function createPlaylist(name, description, ownerId) {
   const sql = `
-    INSERT INTO playlists (name, description)
-    VALUES ($1, $2)
+    INSERT INTO playlists (name, description, owner_id)
+    VALUES ($1, $2, $3)
     RETURNING *;
   `;
 
-  const result = await db.query(sql, [name, description]);
+  const result = await db.query(sql, [name, description, ownerId]);
   return result.rows[0];
 }
 

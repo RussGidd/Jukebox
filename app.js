@@ -1,4 +1,5 @@
 import express from "express";
+import usersRouter from "#api/users";
 import tracksRouter from "#api/tracks";
 import playlistsRouter from "#api/playlists";
 
@@ -6,6 +7,7 @@ const app = express();
 
 app.use(express.json());
 
+app.use("/users", usersRouter);
 app.use("/tracks", tracksRouter);
 app.use("/playlists", playlistsRouter);
 
